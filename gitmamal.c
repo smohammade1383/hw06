@@ -32,6 +32,34 @@ char taguser[100];
 char tagdate[100];
 char tagmassage[100];
 struct stat fortime;
+void last_modify(char* address);
+void findfilename(char* address);
+int found_gitmamal();
+void run_init();
+int search_commit(char* address);
+void search_commit_information(int id);
+void foundusername();
+void foundemail();
+int run_config(int argc,char* argv[]);
+int run_alias(int argc,char* argv[]);
+void create_branch(char* name);
+int numcommit();
+int run_add_file(char* address);
+int run_add_folder(char* address);
+int run_add_e(char* address);
+int run_reset_file(char* address);
+int run_reset_folder(char* address);
+int datecom(char* date1,char* date2);
+int run_reset_e(char* address);
+int findfulladdress(char* name);
+int run_commit(char* massage);
+int statusidentifying(char* address);
+int findintags(char* tagname,int* tagcommitid,int* overwrite);
+int run_tag(char* tagname,char* tagmassage,int tagcommitid,int tagoverwrite);
+char* deletenullspace(char* fordeletenullspace);
+int isnullspace(char* line);
+int run_diff(char* address1,char* address2,int begin1,int end1,int begin2,int end2);
+int filenumline(char* address);
 void last_modify(char* address){
     stat(address,&fortime);
     strftime(lastchange,100,"%d/%m/%Y/ %H/:%M:%S",localtime(&fortime.st_mtime));
@@ -181,9 +209,9 @@ void foundemail(){
     found_gitmamal();
     chdir(gitmamaldirectory);
     chdir("configs");
-    FILE* email=fopen("email.txt","r");
-    fscanf(email,"%s",email);
-    fclose(email);
+    FILE* email1=fopen("email.txt","r");
+    fscanf(email1,"%s",email);
+    fclose(email1);
     chdir(workdirectory);
 }
 
@@ -432,7 +460,7 @@ int run_add_folder(char* address){
     chdir(address);
     struct dirent* x;
     DIR* directory=opendir(".");
-    while((x=readdir(directory)!=NULL)){
+    while((x=readdir(directory))!=NULL){
         if(x->d_type!=DT_DIR){
             findfulladdress(x->d_name);
             run_add_file(addressfile);
@@ -500,7 +528,7 @@ int run_reset_folder(char* address){
     chdir(address);
     struct dirent* x;
     DIR* directory=opendir(".");
-    while((x=readdir(directory)!=NULL)){
+    while((x=readdir(directory))!=NULL){
         if(x->d_type!=DT_DIR){
             findfulladdress(x->d_name);
             run_reset_file(addressfile);
@@ -660,8 +688,8 @@ int run_commit(char* massage){
         mkdir("information",0755);
         mkdir("files",0755);
         chdir("information");
-        found_username();
-        found_email();
+        foundusername();
+        foundemail();
         file=fopen("./branch.txt", "w");
         fprintf(file,"%s","master");
         fclose(file);
@@ -731,11 +759,11 @@ int run_commit(char* massage){
             mode[strlen(mode)-1]='\0';
             fclose(status);
             if(feof(status))break;
-            if((strcmp(mode,"sd")==0)||((strcmp(mode,"se")==0)&&(lastchange==lastadd))){
+            if((strcmp(mode,"sd")==0)||(strcmp(mode,"se")==0)&&(strcmp(lastchange,lastadd)==0)){
                 FILE* checker=fopen(address1,"r");
                 if(checker==NULL){
                     fclose(checker);
-                    FILE* status=("status.txt","r+");
+                    FILE* status=fopen("status.txt","r+");
                     fseek(status,makan,SEEK_SET);
                     fprintf(status,"%s\n",lastchange);
                     fprintf(status,"%s\n","dd");
@@ -744,7 +772,7 @@ int run_commit(char* massage){
                 }
                 else{
                     fclose(checker);
-                    FILE* status=("status.txt","r+");
+                    FILE* status=fopen("status.txt" , "r+");
                     fseek(status,makan,SEEK_SET);
                     fprintf(status,"%s\n",lastchange);
                     fprintf(status,"%s\n","ue");
@@ -754,9 +782,9 @@ int run_commit(char* massage){
             }    
         }
         chdir(workdirectory);
-        FILE* file=fopen("./configs/curcommit.txt","w");
-        fprintf(file,"%d",num);
-        fclose(file);
+        FILE* file1=fopen("./configs/curcommit.txt","w");
+        fprintf(file1,"%d",num);
+        fclose(file1);
         char a[2000];
         char b[2000];
         char command[4000];
@@ -841,7 +869,7 @@ int statusidentifying(char* address){
 
 int run_status(){
     found_gitmamal();
-    char path;
+    char path[1000];
     char workdirectory[1000];
     getcwd(workdirectory,sizeof(workdirectory));
     int lastcommit= numcommit();
@@ -929,7 +957,7 @@ int run_tag(char* tagname,char* tagmassage,int tagcommitid,int tagoverwrite){
             while(1){
                 fgets(tagname,100,tags);
                 tagname[strlen(tagname)-1]='\0';
-                fscnaf(tags,"%d\n",&tagcommitid1);
+                fscanf(tags,"%d\n",&tagcommitid1);
                 fgets(tagusername1,100,tags);
                 fgets(tagdate1,100,tags);
                 fgets(tagmassage1,100,tags);
@@ -963,7 +991,7 @@ int run_tag(char* tagname,char* tagmassage,int tagcommitid,int tagoverwrite){
                 fgets(tagname1,100,tags1);
                 fscanf(tags1,"%d\n",&tagcommitid1);
                 fscanf(tags1,"%s\n",tagusername1);
-                fscnaf(tags1,"%s\n",tagdate1);
+                fscanf(tags1,"%s\n",tagdate1);
                 fscanf(tags1,"%s\n",tagmassage1);
                 fscanf(tags1,"%d\n",&tagoverwrite1);
                 if(feof(tags1))break;
@@ -995,7 +1023,7 @@ int run_tag(char* tagname,char* tagmassage,int tagcommitid,int tagoverwrite){
         stat("./configs/nowtime.txt",&fortime);
         char time[100];
         strftime(time,100,"%d/%m/%Y %H:%M:%S",localtime(&fortime.st_ctime));
-        fprintf(tags,"%s\n",fortime);
+        fprintf(tags,"%s\n",time);
         fclose(nowtime);
         fprintf(tags,"%s\n",tagmassage);
         fprintf(tags,"%d\n",tagoverwrite);
@@ -1129,9 +1157,9 @@ int run_diff(char* address1,char* address2,int begin1,int end1,int begin2,int en
 int filenumline(char* address){
     char line[1000];
     int i=0;
-    FILE* address=fopen(address,"r");
-    while(feof(address)==0){
-        fgets(line,1000,address);
+    FILE* address1=fopen(address,"r");
+    while(feof(address1)==0){
+        fgets(line,1000,address1);
         i++;
     }
     return i;
@@ -1286,18 +1314,18 @@ int main(int argc,char* argv[]){
                             }
                         }                        
                     }
-                    if(pp->d_type==DT_DIR){
+                    if(pp->d_type == DT_DIR){
                         if((strcmp(pp->d_name,".gitmamal")==0)||(strcmp(pp->d_name,".")==0)||(strcmp(pp->d_name,"..")==0))continue;
                         int stage=1;
                         DIR* directory1=opendir(pp->d_name);
                         struct dirent* pp1;
                         while((pp1=readdir(directory1))!=NULL){
-                            if(pp1->d_type=!DT_DIR){
+                            if(pp1->d_type =! DT_DIR){
                                 char help[1000];
                                 strcpy(help,workdirectory);
-                                strcat(help,'/');
+                                strcat(help,"/");
                                 strcat(help,pp->d_name);
-                                strcat(help,'/');
+                                strcat(help,"/");
                                 strcat(help,pp1->d_name);
                                 int o=statusidentifying(help);
                                 if(o!=1){
@@ -1502,7 +1530,7 @@ int main(int argc,char* argv[]){
                 fgets(shortcutmass,100,shortcuts);
                 if(feof(shortcuts)) break;
                 shortcutname[strlen(shortcutname)-1]='\0';
-                if(strcmp(argv[5],shortcuts)==0){
+                if(strcmp(argv[5],shortcutname)==0){
                     k = 1;
                     break;
                 }
@@ -1649,7 +1677,7 @@ int main(int argc,char* argv[]){
         }
         else if((argc==4)&&(strcmp(argv[2],"-since")==0)){
             int k=0;
-            for(int i=numcommit;i>0;i++){
+            for(int i=curcommit;i>0;i--){
                 search_commit_information(i);
                 if(datecom(committime,argv[3])==1){
                     k=1;
@@ -1665,7 +1693,7 @@ int main(int argc,char* argv[]){
         }
         else if((argc==4)&&(strcmp(argv[2],"-before")==0)){
             int k=0;
-            for(int i=numcommit;i>0;i++){
+            for(int i=curcommit;i>0;i--){
                 search_commit_information(i);
                 if(datecom(committime,argv[3])==0){
                     k=1;
@@ -1681,7 +1709,7 @@ int main(int argc,char* argv[]){
         }
         else if(strcmp(argv[2],"-search")==0){
             int k=0;
-            for(int i=numcommit;i>0;i++){
+            for(int i=curcommit;i>0;i--){
                 search_commit_information(i);
                 if(strstr(commitmassage,argv[3])!=NULL){
                     k=1;
@@ -1700,6 +1728,7 @@ int main(int argc,char* argv[]){
         if((argc==5)&&(strcmp(argv[2],"-f")==0)){
             run_diff(argv[3],argv[4],1,filenumline(argv[3]),1,filenumline(argv[4]));
         }
+    }
     
     else if(strcmp(argv[1],"tag")==0){
         char workdirectory[1000];
@@ -1744,7 +1773,7 @@ int main(int argc,char* argv[]){
             }
             else if(argc==4){
                 if(strcmp(argv[2],"show")==0){
-                    int a=findintags()
+                    
                 }
             }
 
